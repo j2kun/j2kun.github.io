@@ -1,7 +1,7 @@
 
 function initContextAttrs(context) {
    context.strokeStyle = "#000000";
-   context.lineWidth = 13;
+   context.lineWidth = 3;
 }
 
 function init() {
@@ -23,13 +23,6 @@ function init() {
       [[149,190], [122,214], [142,204], [85,240]],  // nose bridge
       [[86,240], [100,247], [125,233], [140,238]]   // mouth
    ];
-
-   for (var theCurve = 0; theCurve < curve.curves.length; theCurve++) {
-      for (var pt = 0; pt < 4; pt++) {
-         curve.curves[theCurve][pt][0] = Math.floor(curve.curves[theCurve][pt][0] * 5.184);
-         curve.curves[theCurve][pt][1] = Math.floor(curve.curves[theCurve][pt][1] * 5.184) - 700;
-      }
-   }
 
    paintDrawing(curve);
 
