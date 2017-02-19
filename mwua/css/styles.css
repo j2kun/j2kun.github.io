@@ -1,0 +1,172 @@
+body {
+    font-family: 'Roboto', 'Sans Serif';
+    font-size: 16px;
+    padding: 0;
+    margin: 0;
+}
+
+header {
+    background-color: #03A9F4;
+    padding: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+h1, h2, h3 {
+    font-weight: 300;
+}
+
+header > h1 {
+    font-weight: 300;
+    font-size: 24px;
+    margin: 0;
+    color: #FFFFFF;
+}
+
+h2 {
+    font-size: 22px;
+    margin: 40px 0 10px 10px;
+}
+
+h3 {
+    margin: 10px 0 28px 0;
+}
+
+h3 > span {
+    color: #0288D1;
+}
+
+input {
+    width: 50px;
+    text-align: center;
+}
+
+table {
+    border-collapse: collapse;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+th {
+    text-align: right;
+    font-weight: 400;
+}
+
+td {
+    text-align: center;
+    padding: 0 .5rem;
+}
+
+th,
+td {
+    border: solid 1px #EEEEEE !important;
+    padding: 2px 7px;
+}
+
+label {
+    display: inline-block;
+    width: 80px;
+    text-align: right;
+    margin-right: 4px;
+}
+
+.content {
+    padding: 20px;
+}
+
+.bar {
+    display: inline-block;
+    border: none;
+    height: 8px;
+}
+
+.bar.principal {
+    background-color: #0288D1;
+    margin-right:1px;
+}
+
+.bar.interest {
+    background-color: #EF6C00;
+    margin-left:1px;
+}
+
+.stretch {
+    width: 100%;
+    padding-left:0;
+    padding-right:0;
+}
+
+.flex {
+    display: -webkit-flex;
+    display: flex;
+}
+
+.currency::before {
+    content:"$";
+}
+
+.left {
+    text-align: left;
+}
+
+.form > div {
+    margin: 6px 0;
+}
+
+button {
+    text-transform: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding: 12px 18px;
+    border-radius: 2px;
+    background: #FCFCFC;
+    font-size: 16px;
+    border: solid 1px #ddd;
+    color: #444;
+}
+
+button:hover {
+    background: #F4F4F4;
+    border: solid 1px #ccc;
+}
+
+button:active {
+    background: #FEFEFE;
+    border: solid 1px #ddd;
+}
+
+button:focus {
+    outline:0;
+}
+
+.tooltip{
+    display: inline;
+    position: relative;
+    text-decoration: underline;
+    text-align: left;
+}
+
+.tooltip:hover:after{
+    background: #333;
+    background: rgba(0,0,0,.8);
+    border-radius: 5px;
+    bottom: 26px;
+    color: #fff;
+    content: attr(title);
+    left: 20%;
+    padding: 5px 15px;
+    position: absolute;
+    z-index: 98;
+    width: 220px;
+    font-size: 14px;
+}
+
+.tooltip:hover:before{
+    border: solid;
+    border-color: #333 transparent;
+    border-width: 6px 6px 0 6px;
+    bottom: 20px;
+    content: "";
+    left: 50%;
+    position: absolute;
+    z-index: 99;
+}
