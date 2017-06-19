@@ -74,41 +74,45 @@ function convertData(d) {
     graph[target]['in'].push(source);
   }
 
-  d3.select("#name_input").on("keyup", suggest);
   return graph;
 }
 
 function setSearchBar() {
-  window.example = this;
   console.log('Selecting ' + this.innerText);
   d3.select('#name_input').property('value', this.innerText);
   d3.select('#autocomplete_results').style('display', 'none');
+  renderFromSearch();
 }
 
 function suggest() {
   var searchString = d3.select('#name_input').property('value');
+  var autocomplete = d3.select('#autocomplete_results');
   console.log('Autocompleting ' + searchString);
 
-  var results = null;
-  if (searchString.length >= 3) {
-    results = fuzzyNames.get(searchString, '', 0.3);
-    window.results = results;
+  if (d3.event.keyCode == 13) {
+    autocomplete.style('display', 'none');
+    renderFromSearch();
+  } else {
+    var results = null;
+    if (searchString.length >= 3) {
+      results = fuzzyNames.get(searchString, '', 0.3);
+      window.results = results;
+    }
+
+    var dataList = autocomplete.selectAll('li').data([]).exit().remove();
+    if (results) {
+      var _dataList = autocomplete.selectAll('option').data(results);
+
+      _dataList.enter().append('li').attr('class', 'autocomplete_option').attr('value', function (d) {
+        return d[1];
+      }).text(function (d) {
+        return d[1];
+      });
+    }
+
+    d3.selectAll('.autocomplete_option').on('click', setSearchBar);
+    autocomplete.style('display', 'block');
   }
-
-  var autocomplete = d3.select('#autocomplete_results');
-  var dataList = autocomplete.selectAll('li').data([]).exit().remove();
-  if (results) {
-    var _dataList = autocomplete.selectAll('option').data(results);
-
-    _dataList.enter().append('li').attr('class', 'autocomplete_option').attr('value', function (d) {
-      return d[1];
-    }).text(function (d) {
-      return d[1];
-    });
-  }
-
-  d3.selectAll('.autocomplete_option').on('click', setSearchBar);
-  autocomplete.style('display', 'block');
 }
 
 d3.json("genealogy_graph.json", function (error, d) {
@@ -228,7 +232,7 @@ function createGraphFor(id) {
   return graph;
 }
 
-d3.select('#ancestry_button').on('click', function () {
+function renderFromSearch() {
   var name = d3.select('#name_input').property("value");
   console.log('Looking up ' + name);
   name = name.trim();
@@ -236,7 +240,6 @@ d3.select('#ancestry_button').on('click', function () {
   var found_id = null;
   for (var i = 0, n = data.length; i < n; i++) {
     if (data[i] && data[i].name && name == data[i].name) {
-      // TODO: better fuzzy matching?
       console.log('Found name ' + name + ' with id ' + i.toString());
       found_id = i;
       break;
@@ -249,8 +252,10 @@ d3.select('#ancestry_button').on('click', function () {
   } else {
     d3.select("#name_not_found").style('display', 'block');
   }
-});
+}
 
+d3.select("#name_input").on("keyup", suggest);
+d3.select('#ancestry_button').on('click', renderFromSearch);
 d3.select('#autocomplete_results').style('display', 'none');
 d3.select('#loading').style('display', 'block');
 d3.select('#hide_while_loading').style('display', 'none');
