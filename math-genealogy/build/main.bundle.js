@@ -1,6 +1,322 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function shortestPath(graph, source, target) {
+  // DFS to find shortest path
+  // Return a list of edges from source -> target
+  if (source == target) {
+    return []; // interpreted as truthy
+  }
+
+  if (graph[source]) {
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
+
+    try {
+      for (var _iterator = graph[source]['out'][Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var child = _step.value;
+
+        var foundEdges = shortestPath(graph, child, target);
+        if (foundEdges) {
+          // empty list interpreted as truthy
+          foundEdges.unshift([source, child]); // push new edge to front
+          return foundEdges;
+        }
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator.return) {
+          _iterator.return();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+  }
+
+  // returns undefined if at a leaf or target is not found
+  // in any subtree of source
+}
+
+function closestAncestor(graph, id1, id2) {
+  // perform a simultaneous BFS from each child node
+  // until an ancestor is found; return undefined if no ancetor found
+  var unprocessed1 = [id1];
+  var unprocessed2 = [id2];
+  var processed1 = new Set([]);
+  var processed2 = new Set([]);
+
+  function handle(unprocessed, myProcessed, otherProcessed) {
+    // one step of the BFS
+    if (unprocessed.length > 0) {
+      var next = unprocessed.shift();
+      if (otherProcessed.has(next)) {
+        return next;
+      }
+      myProcessed.add(next);
+      var parents = graph[next]['in'];
+
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = parents[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var parentId = _step2.value;
+
+          if (otherProcessed.has(parentId)) {
+            return parentId;
+          } else {
+            unprocessed.push(parentId);
+          }
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+  }
+
+  while (unprocessed1.length > 0 || unprocessed2.length > 0) {
+    // interleave the BFS from each child, stopping if a common parent is found
+    var possibleParent = handle(unprocessed1, processed1, processed2);
+    if (possibleParent) {
+      return possibleParent; // it's a definite parent
+    }
+
+    possibleParent = handle(unprocessed2, processed2, processed1);
+    if (possibleParent) {
+      return possibleParent; // it's a definite parent
+    }
+  }
+
+  // no common ancestors!
+}
+
+function commonAncestryGraph(graph, id1, id2) {
+  var ancestor = closestAncestor(graph, id1, id2);
+  if (!ancestor) {
+    console.log('No ancestors found for ' + id1 + ' ' + id2);
+    return null;
+  } else {
+    console.log('Closest ancestor is ' + graph[ancestor].name + ' with id ' + ancestor);
+  }
+
+  var edges1 = shortestPath(graph, ancestor, id1);
+  var edges2 = shortestPath(graph, ancestor, id2);
+  var union = [];
+  var _iteratorNormalCompletion3 = true;
+  var _didIteratorError3 = false;
+  var _iteratorError3 = undefined;
+
+  try {
+    for (var _iterator3 = edges1[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+      var x = _step3.value;
+
+      union.push(x);
+    }
+  } catch (err) {
+    _didIteratorError3 = true;
+    _iteratorError3 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion3 && _iterator3.return) {
+        _iterator3.return();
+      }
+    } finally {
+      if (_didIteratorError3) {
+        throw _iteratorError3;
+      }
+    }
+  }
+
+  var _iteratorNormalCompletion4 = true;
+  var _didIteratorError4 = false;
+  var _iteratorError4 = undefined;
+
+  try {
+    for (var _iterator4 = edges2[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      var _x = _step4.value;
+
+      union.push(_x);
+    }
+  } catch (err) {
+    _didIteratorError4 = true;
+    _iteratorError4 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion4 && _iterator4.return) {
+        _iterator4.return();
+      }
+    } finally {
+      if (_didIteratorError4) {
+        throw _iteratorError4;
+      }
+    }
+  }
+
+  return union;
+}
+
+function descendantsCountExceeds(graph, id, threshold) {
+  // Determine if the id has more than threshold many descendants
+  var count = 0;
+  var unprocessedDescendants = [id];
+  var processed = new Set([]);
+
+  while (unprocessedDescendants.length > 0) {
+    var next = unprocessedDescendants.pop();
+    processed.add(next); // Ignore any self loops, which would be odd
+    var children = graph[next]['out'];
+
+    var _iteratorNormalCompletion5 = true;
+    var _didIteratorError5 = false;
+    var _iteratorError5 = undefined;
+
+    try {
+      for (var _iterator5 = children[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+        var childId = _step5.value;
+
+        if (!processed.has(childId)) {
+          count = count + 1;
+          unprocessedDescendants.push(childId);
+        }
+      }
+    } catch (err) {
+      _didIteratorError5 = true;
+      _iteratorError5 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+          _iterator5.return();
+        }
+      } finally {
+        if (_didIteratorError5) {
+          throw _iteratorError5;
+        }
+      }
+    }
+
+    if (count > threshold) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function ancestryGraph(graph, id) {
+  var parentsOnly = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+
+  // Construct the graph of ancestors of the given node
+  // Output is a Set of edges
+  var edgeSubset = new Set([]);
+  var unprocessedAncestors = [id];
+  var processed = new Set([]);
+
+  while (unprocessedAncestors.length > 0) {
+    var next = unprocessedAncestors.pop();
+    processed.add(next); // Ignore any self loops, which would be odd
+    var parents = graph[next]['in'];
+
+    var _iteratorNormalCompletion6 = true;
+    var _didIteratorError6 = false;
+    var _iteratorError6 = undefined;
+
+    try {
+      for (var _iterator6 = parents[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+        var parentId = _step6.value;
+
+        edgeSubset.add([parentId, next]);
+        if (!processed.has(parentId)) {
+          unprocessedAncestors.push(parentId);
+        }
+      }
+    } catch (err) {
+      _didIteratorError6 = true;
+      _iteratorError6 = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion6 && _iterator6.return) {
+          _iterator6.return();
+        }
+      } finally {
+        if (_didIteratorError6) {
+          throw _iteratorError6;
+        }
+      }
+    }
+  }
+
+  if (!parentsOnly) {
+    var unprocessedDescendants = [id];
+    while (unprocessedDescendants.length > 0) {
+      var _next = unprocessedDescendants.pop();
+      processed.add(_next); // Ignore any self loops, which would be odd
+      var children = graph[_next]['out'];
+
+      var _iteratorNormalCompletion7 = true;
+      var _didIteratorError7 = false;
+      var _iteratorError7 = undefined;
+
+      try {
+        for (var _iterator7 = children[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+          var childId = _step7.value;
+
+          edgeSubset.add([_next, childId]);
+          if (!processed.has(childId)) {
+            unprocessedDescendants.push(childId);
+          }
+        }
+      } catch (err) {
+        _didIteratorError7 = true;
+        _iteratorError7 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion7 && _iterator7.return) {
+            _iterator7.return();
+          }
+        } finally {
+          if (_didIteratorError7) {
+            throw _iteratorError7;
+          }
+        }
+      }
+    }
+  }
+
+  return [].concat(_toConsumableArray(edgeSubset));
+}
+
+module.exports = {
+  ancestryGraph: ancestryGraph,
+  closestAncestor: closestAncestor,
+  commonAncestryGraph: commonAncestryGraph,
+  descendantsCountExceeds: descendantsCountExceeds,
+  shortestPath: shortestPath
+};
+
+},{}],2:[function(require,module,exports){
+'use strict';
+
 var _dagreD = require('dagre-d3');
 
 var dagreD3 = _interopRequireWildcard(_dagreD);
@@ -13,9 +329,12 @@ var _fuzzyset = require('fuzzyset.js');
 
 var FuzzySet = _interopRequireWildcard(_fuzzyset);
 
+var _graph_search = require('./graph_search');
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var data = null; // Contains the raw graph data
+var nameToId = new Object();
 var fuzzyNames = FuzzySet.default();
 var width = 1280;
 var height = 1000;
@@ -63,6 +382,7 @@ function convertData(d) {
         'in': [],
         'out': []
       };
+      nameToId[name] = mgp_id;
       fuzzyNames.add(name);
     }
   }
@@ -77,26 +397,23 @@ function convertData(d) {
   return graph;
 }
 
-function setSearchBar() {
-  console.log('Selecting ' + this.innerText);
-  d3.select('#name_input').property('value', this.innerText);
-  d3.select('#autocomplete_results').style('display', 'none');
-  renderFromSearch();
+function setSearchBar(text, textInputId, resultsId) {
+  d3.select(textInputId).property('value', text);
+  d3.select(resultsId).style('display', 'none');
 }
 
-function suggest() {
-  var searchString = d3.select('#name_input').property('value');
-  var autocomplete = d3.select('#autocomplete_results');
+function suggest(textInputId, resultsId) {
+  var searchString = d3.select(textInputId).property('value');
+  var autocomplete = d3.select(resultsId);
   console.log('Autocompleting ' + searchString);
 
   if (d3.event.keyCode == 13) {
     autocomplete.style('display', 'none');
-    renderFromSearch();
+    renderFromSearch(textInputId);
   } else {
     var results = null;
     if (searchString.length >= 3) {
       results = fuzzyNames.get(searchString, '', 0.3);
-      window.results = results;
     }
 
     var dataList = autocomplete.selectAll('li').data([]).exit().remove();
@@ -110,7 +427,9 @@ function suggest() {
       });
     }
 
-    d3.selectAll('.autocomplete_option').on('click', setSearchBar);
+    autocomplete.selectAll('.autocomplete_option').on('click', function () {
+      setSearchBar(this.innerText, textInputId, resultsId);
+    });
     autocomplete.style('display', 'block');
   }
 }
@@ -119,70 +438,99 @@ d3.json("genealogy_graph.json", function (error, d) {
   if (error) throw error;
   console.log('Done loading data');
   data = convertData(d);
+  window.data = data;
   console.log('Done converting data');
   d3.select('#hide_while_loading').style('display', 'block');
   d3.select('#loading').style('display', 'none');
+
+  var gauss = 18231;
+  createAncestryGraphFor(gauss);
 });
 
-function ancestryGraph(id) {
-  // Construct the graph of ancestors of the given node
-  // Output is a d3-compatible edge list
-  var nodeIdToName = {};
-  var edgeSubset = [];
-  var unprocessed = [id];
-  var processed = new Set([]);
-
-  while (unprocessed.length > 0) {
-    var next = unprocessed.pop();
-    processed.add(next); // Ignore any self loops, which would be odd
-    nodeIdToName[next] = data[next].name;
-    var parents = data[next]['in'];
-
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = parents[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var parentId = _step.value;
-
-        edgeSubset.push([parentId, next]);
-        if (!processed.has(parentId)) {
-          unprocessed.push(parentId);
-        }
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-  }
-
-  var edges = edgeSubset.map(function (e) {
-    var sourceName = nodeIdToName[e[0].toString()];
-    var targetName = nodeIdToName[e[1].toString()];
+function edgeListToStrings(edges) {
+  return edges.map(function (e) {
+    var sourceName = data[e[0]].name;
+    var targetName = data[e[1]].name;
     return '"' + sourceName + '" -> "' + targetName + '";';
   });
-
-  return edges;
 }
 
 // Create and configure the renderer
 var render = dagreD3.render();
 
-function createGraphFor(id) {
-  var graph;
-  var edgeStrings = ancestryGraph(id);
-  var graphString = "digraph {";
+function renderGraph(graphString) {
+  var graph = void 0;
+  try {
+    graph = graphlibDot.read(graphString);
+  } catch (e) {
+    console.log('Failed to parse graph...');
+    throw e;
+  }
+
+  // Render the graph into svg g
+  d3.select("svg g").call(render, graph);
+
+  // Zoom and translate to center
+  var graphWidth = graph.graph().width;
+  var graphHeight = graph.graph().height;
+  var zoomScale = Math.min(width / graphWidth, height / graphHeight);
+  var translate = [width / 2 - graphWidth * zoomScale / 2, 0];
+  zoom.translate(translate);
+  zoom.scale(zoomScale);
+  zoom.event(inner);
+
+  return graph;
+}
+
+function createAncestryGraphFor(id) {
+  var parentsOnly = false;
+  if ((0, _graph_search.descendantsCountExceeds)(data, id, 1000)) {
+    console.log("the graph is too big!");
+    parentsOnly = true;
+  }
+
+  var edgeStrings = edgeListToStrings((0, _graph_search.ancestryGraph)(data, id, parentsOnly));
+  var graphString = "digraph { ";
+
+  graphString = graphString + " \"" + data[id].name + "\" [style=\"fill: #66ff66; font-weight: bold\"];";
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = edgeStrings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var edge = _step.value;
+
+      graphString = graphString + " " + edge + " ";
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  graphString = graphString + "}";
+
+  return renderGraph(graphString);
+}
+
+function createCommonAncestryGraphFor(id1, id2) {
+  var edgeStrings = edgeListToStrings((0, _graph_search.commonAncestryGraph)(data, id1, id2));
+  var graphString = "digraph { ";
+
+  graphString = graphString + " \"" + data[id1].name + "\" [style=\"fill: #66ff66; font-weight: bold\"];";
+  graphString = graphString + " \"" + data[id2].name + "\" [style=\"fill: #6666ff; font-weight: bold\"];";
+
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
   var _iteratorError2 = undefined;
@@ -210,57 +558,57 @@ function createGraphFor(id) {
 
   graphString = graphString + "}";
 
-  try {
-    graph = graphlibDot.read(graphString);
-  } catch (e) {
-    console.log('Failed to parse graph...');
-    throw e;
-  }
-
-  // Render the graph into svg g
-  d3.select("svg g").call(render, graph);
-
-  // Zoom and translate to center
-  var graphWidth = graph.graph().width;
-  var graphHeight = graph.graph().height;
-  var zoomScale = Math.min(width / graphWidth, height / graphHeight);
-  var translate = [width / 2 - graphWidth * zoomScale / 2, 0];
-  zoom.translate(translate);
-  zoom.scale(zoomScale);
-  zoom.event(inner);
-
-  return graph;
+  return renderGraph(graphString);
 }
 
-function renderFromSearch() {
-  var name = d3.select('#name_input').property("value");
-  console.log('Looking up ' + name);
-  name = name.trim();
-
-  var found_id = null;
-  for (var i = 0, n = data.length; i < n; i++) {
-    if (data[i] && data[i].name && name == data[i].name) {
-      console.log('Found name ' + name + ' with id ' + i.toString());
-      found_id = i;
-      break;
-    }
-  }
-
-  if (found_id) {
+function setOrClearErrorField(name, id) {
+  if (id) {
     d3.select("#name_not_found").style('display', 'none');
-    createGraphFor(found_id);
   } else {
-    d3.select("#name_not_found").style('display', 'block');
+    d3.select("#name_not_found").style('display', 'block').text("Name '" + name + "' not found.");
   }
 }
 
-d3.select("#name_input").on("keyup", suggest);
-d3.select('#ancestry_button').on('click', renderFromSearch);
+function getIdFromSearch(textInputId) {
+  var name = d3.select(textInputId).property("value").trim();
+  var id = nameToId[name];
+  setOrClearErrorField(name, id);
+  return id;
+}
+
+function renderAncestryGraphFromSearch() {
+  var id = getIdFromSearch('#single_name_input');
+  if (id) {
+    createAncestryGraphFor(id);
+  }
+}
+
+function renderCommonAncestryGraphFromSearch() {
+  var id1 = getIdFromSearch('#common_ancestor_input1');
+  var id2 = getIdFromSearch('#common_ancestor_input2');
+  if (id1 && id2) {
+    createCommonAncestryGraphFor(id1, id2);
+  }
+}
+
+d3.select("#single_name_input").on("keyup", function () {
+  return suggest("#single_name_input", "#single_name_autocomplete_results");
+});
+d3.select('#ancestry_button').on('click', renderAncestryGraphFromSearch);
+
+d3.select("#common_ancestor_input1").on("keyup", function () {
+  return suggest("#common_ancestor_input1", "#common_ancestor_autocomplete_results");
+});
+d3.select("#common_ancestor_input2").on("keyup", function () {
+  return suggest("#common_ancestor_input2", "#common_ancestor_autocomplete_results");
+});
+d3.select('#common_ancestry_button').on('click', renderCommonAncestryGraphFromSearch);
+
 d3.select('#autocomplete_results').style('display', 'none');
 d3.select('#loading').style('display', 'block');
 d3.select('#hide_while_loading').style('display', 'none');
 
-},{"dagre-d3":2,"fuzzyset.js":62,"graphlib-dot":64}],2:[function(require,module,exports){
+},{"./graph_search":1,"dagre-d3":3,"fuzzyset.js":63,"graphlib-dot":65}],3:[function(require,module,exports){
 /**
  * @license
  * Copyright (c) 2012-2013 Chris Pettitt
@@ -292,7 +640,7 @@ module.exports =  {
   version: require("./lib/version")
 };
 
-},{"./lib/dagre":9,"./lib/graphlib":10,"./lib/intersect":11,"./lib/render":26,"./lib/util":28,"./lib/version":29}],3:[function(require,module,exports){
+},{"./lib/dagre":10,"./lib/graphlib":11,"./lib/intersect":12,"./lib/render":27,"./lib/util":29,"./lib/version":30}],4:[function(require,module,exports){
 var util = require("./util");
 
 module.exports = {
@@ -365,7 +713,7 @@ function undirected(parent, id, edge, type) {
   }
 }
 
-},{"./util":28}],4:[function(require,module,exports){
+},{"./util":29}],5:[function(require,module,exports){
 var util = require("./util"),
     addLabel = require("./label/add-label");
 
@@ -410,7 +758,7 @@ function createClusters(selection, g) {
   return svgClusters;
 }
 
-},{"./label/add-label":19,"./util":28}],5:[function(require,module,exports){
+},{"./label/add-label":20,"./util":29}],6:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -447,7 +795,7 @@ function createEdgeLabels(selection, g) {
   return svgEdgeLabels;
 }
 
-},{"./d3":8,"./label/add-label":19,"./lodash":22,"./util":28}],6:[function(require,module,exports){
+},{"./d3":9,"./label/add-label":20,"./lodash":23,"./util":29}],7:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -585,7 +933,7 @@ function exit(svgPaths, g) {
     });
 }
 
-},{"./d3":8,"./intersect/intersect-node":15,"./lodash":22,"./util":28}],7:[function(require,module,exports){
+},{"./d3":9,"./intersect/intersect-node":16,"./lodash":23,"./util":29}],8:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -645,11 +993,11 @@ function createNodes(selection, g, shapes) {
   return svgNodes;
 }
 
-},{"./d3":8,"./label/add-label":19,"./lodash":22,"./util":28}],8:[function(require,module,exports){
+},{"./d3":9,"./label/add-label":20,"./lodash":23,"./util":29}],9:[function(require,module,exports){
 // Stub to get D3 either via NPM or from the global object
 module.exports = window.d3;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /* global window */
 
 var dagre;
@@ -666,7 +1014,7 @@ if (!dagre) {
 
 module.exports = dagre;
 
-},{"dagre":31}],10:[function(require,module,exports){
+},{"dagre":32}],11:[function(require,module,exports){
 /* global window */
 
 var graphlib;
@@ -683,7 +1031,7 @@ if (!graphlib) {
 
 module.exports = graphlib;
 
-},{"graphlib":74}],11:[function(require,module,exports){
+},{"graphlib":75}],12:[function(require,module,exports){
 module.exports = {
   node: require("./intersect-node"),
   circle: require("./intersect-circle"),
@@ -692,7 +1040,7 @@ module.exports = {
   rect: require("./intersect-rect")
 };
 
-},{"./intersect-circle":12,"./intersect-ellipse":13,"./intersect-node":15,"./intersect-polygon":16,"./intersect-rect":17}],12:[function(require,module,exports){
+},{"./intersect-circle":13,"./intersect-ellipse":14,"./intersect-node":16,"./intersect-polygon":17,"./intersect-rect":18}],13:[function(require,module,exports){
 var intersectEllipse = require("./intersect-ellipse");
 
 module.exports = intersectCircle;
@@ -701,7 +1049,7 @@ function intersectCircle(node, rx, point) {
   return intersectEllipse(node, rx, rx, point);
 }
 
-},{"./intersect-ellipse":13}],13:[function(require,module,exports){
+},{"./intersect-ellipse":14}],14:[function(require,module,exports){
 module.exports = intersectEllipse;
 
 function intersectEllipse(node, rx, ry, point) {
@@ -728,7 +1076,7 @@ function intersectEllipse(node, rx, ry, point) {
 }
 
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = intersectLine;
 
 /*
@@ -800,14 +1148,14 @@ function sameSign(r1, r2) {
   return r1 * r2 > 0;
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 module.exports = intersectNode;
 
 function intersectNode(node, point) {
   return node.intersect(point);
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var intersectLine = require("./intersect-line");
 
 module.exports = intersectPolygon;
@@ -864,7 +1212,7 @@ function intersectPolygon(node, polyPoints, point) {
   return intersections[0];
 }
 
-},{"./intersect-line":14}],17:[function(require,module,exports){
+},{"./intersect-line":15}],18:[function(require,module,exports){
 module.exports = intersectRect;
 
 function intersectRect(node, point) {
@@ -898,7 +1246,7 @@ function intersectRect(node, point) {
   return {x: x + sx, y: y + sy};
 }
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var util = require("../util");
 
 module.exports = addHtmlLabel;
@@ -937,7 +1285,7 @@ function addHtmlLabel(root, node) {
   return fo;
 }
 
-},{"../util":28}],19:[function(require,module,exports){
+},{"../util":29}],20:[function(require,module,exports){
 var addTextLabel = require("./add-text-label"),
     addHtmlLabel = require("./add-html-label"),
     addSVGLabel  = require("./add-svg-label");
@@ -976,7 +1324,7 @@ function addLabel(root, node, location) {
   return labelSvg;
 }
 
-},{"./add-html-label":18,"./add-svg-label":20,"./add-text-label":21}],20:[function(require,module,exports){
+},{"./add-html-label":19,"./add-svg-label":21,"./add-text-label":22}],21:[function(require,module,exports){
 var util = require("../util");
 
 module.exports = addSVGLabel;
@@ -991,7 +1339,7 @@ function addSVGLabel(root, node) {
   return domNode;
 }
 
-},{"../util":28}],21:[function(require,module,exports){
+},{"../util":29}],22:[function(require,module,exports){
 var util = require("../util");
 
 module.exports = addTextLabel;
@@ -1038,7 +1386,7 @@ function processEscapeSequences(text) {
   return newText;
 }
 
-},{"../util":28}],22:[function(require,module,exports){
+},{"../util":29}],23:[function(require,module,exports){
 /* global window */
 
 var lodash;
@@ -1055,7 +1403,7 @@ if (!lodash) {
 
 module.exports = lodash;
 
-},{"lodash":30}],23:[function(require,module,exports){
+},{"lodash":31}],24:[function(require,module,exports){
 "use strict";
 
 var util = require("./util"),
@@ -1091,7 +1439,7 @@ function positionClusters(selection, g) {
 
 }
 
-},{"./d3":8,"./util":28}],24:[function(require,module,exports){
+},{"./d3":9,"./util":29}],25:[function(require,module,exports){
 "use strict";
 
 var util = require("./util"),
@@ -1115,7 +1463,7 @@ function positionEdgeLabels(selection, g) {
     .attr("transform", translate);
 }
 
-},{"./d3":8,"./lodash":22,"./util":28}],25:[function(require,module,exports){
+},{"./d3":9,"./lodash":23,"./util":29}],26:[function(require,module,exports){
 "use strict";
 
 var util = require("./util"),
@@ -1138,7 +1486,7 @@ function positionNodes(selection, g) {
     .attr("transform", translate);
 }
 
-},{"./d3":8,"./util":28}],26:[function(require,module,exports){
+},{"./d3":9,"./util":29}],27:[function(require,module,exports){
 var _ = require("./lodash"),
     layout = require("./dagre").layout;
 
@@ -1307,7 +1655,7 @@ function createOrSelectGroup(root, name) {
   return selection;
 }
 
-},{"./arrows":3,"./create-clusters":4,"./create-edge-labels":5,"./create-edge-paths":6,"./create-nodes":7,"./dagre":9,"./lodash":22,"./position-clusters":23,"./position-edge-labels":24,"./position-nodes":25,"./shapes":27}],27:[function(require,module,exports){
+},{"./arrows":4,"./create-clusters":5,"./create-edge-labels":6,"./create-edge-paths":7,"./create-nodes":8,"./dagre":10,"./lodash":23,"./position-clusters":24,"./position-edge-labels":25,"./position-nodes":26,"./shapes":28}],28:[function(require,module,exports){
 "use strict";
 
 var intersectRect = require("./intersect/intersect-rect"),
@@ -1390,7 +1738,7 @@ function diamond(parent, bbox, node) {
   return shapeSvg;
 }
 
-},{"./intersect/intersect-circle":12,"./intersect/intersect-ellipse":13,"./intersect/intersect-polygon":16,"./intersect/intersect-rect":17}],28:[function(require,module,exports){
+},{"./intersect/intersect-circle":13,"./intersect/intersect-ellipse":14,"./intersect/intersect-polygon":17,"./intersect/intersect-rect":18}],29:[function(require,module,exports){
 var _ = require("./lodash");
 
 // Public utility functions
@@ -1446,10 +1794,10 @@ function applyTransition(selection, g) {
   return selection;
 }
 
-},{"./lodash":22}],29:[function(require,module,exports){
+},{"./lodash":23}],30:[function(require,module,exports){
 module.exports = "0.4.17";
 
-},{}],30:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -13805,7 +14153,7 @@ module.exports = "0.4.17";
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],31:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 /*
 Copyright (c) 2012-2014 Chris Pettitt
 
@@ -13840,7 +14188,7 @@ module.exports = {
   version: require("./lib/version")
 };
 
-},{"./lib/debug":36,"./lib/graphlib":37,"./lib/layout":39,"./lib/util":59,"./lib/version":60}],32:[function(require,module,exports){
+},{"./lib/debug":37,"./lib/graphlib":38,"./lib/layout":40,"./lib/util":60,"./lib/version":61}],33:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -13909,7 +14257,7 @@ function undo(g) {
   });
 }
 
-},{"./greedy-fas":38,"./lodash":40}],33:[function(require,module,exports){
+},{"./greedy-fas":39,"./lodash":41}],34:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util");
 
@@ -13949,7 +14297,7 @@ function addBorderNode(g, prop, prefix, sg, sgNode, rank) {
   }
 }
 
-},{"./lodash":40,"./util":59}],34:[function(require,module,exports){
+},{"./lodash":41,"./util":60}],35:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash");
@@ -14023,7 +14371,7 @@ function swapXYOne(attrs) {
   attrs.y = x;
 }
 
-},{"./lodash":40}],35:[function(require,module,exports){
+},{"./lodash":41}],36:[function(require,module,exports){
 /*
  * Simple doubly linked list implementation derived from Cormen, et al.,
  * "Introduction to Algorithms".
@@ -14081,7 +14429,7 @@ function filterOutLinks(k, v) {
   }
 }
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util"),
     Graph = require("./graphlib").Graph;
@@ -14117,7 +14465,7 @@ function debugOrdering(g) {
   return h;
 }
 
-},{"./graphlib":37,"./lodash":40,"./util":59}],37:[function(require,module,exports){
+},{"./graphlib":38,"./lodash":41,"./util":60}],38:[function(require,module,exports){
 /* global window */
 
 var graphlib;
@@ -14134,7 +14482,7 @@ if (!graphlib) {
 
 module.exports = graphlib;
 
-},{"graphlib":74}],38:[function(require,module,exports){
+},{"graphlib":75}],39:[function(require,module,exports){
 var _ = require("./lodash"),
     Graph = require("./graphlib").Graph,
     List = require("./data/list");
@@ -14254,7 +14602,7 @@ function assignBucket(buckets, zeroIdx, entry) {
   }
 }
 
-},{"./data/list":35,"./graphlib":37,"./lodash":40}],39:[function(require,module,exports){
+},{"./data/list":36,"./graphlib":38,"./lodash":41}],40:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -14648,7 +14996,7 @@ function canonicalize(attrs) {
   return newAttrs;
 }
 
-},{"./acyclic":32,"./add-border-segments":33,"./coordinate-system":34,"./graphlib":37,"./lodash":40,"./nesting-graph":41,"./normalize":42,"./order":47,"./parent-dummy-chains":52,"./position":54,"./rank":56,"./util":59}],40:[function(require,module,exports){
+},{"./acyclic":33,"./add-border-segments":34,"./coordinate-system":35,"./graphlib":38,"./lodash":41,"./nesting-graph":42,"./normalize":43,"./order":48,"./parent-dummy-chains":53,"./position":55,"./rank":57,"./util":60}],41:[function(require,module,exports){
 /* global window */
 
 var lodash;
@@ -14665,7 +15013,7 @@ if (!lodash) {
 
 module.exports = lodash;
 
-},{"lodash":61}],41:[function(require,module,exports){
+},{"lodash":62}],42:[function(require,module,exports){
 var _ = require("./lodash"),
     util = require("./util");
 
@@ -14799,7 +15147,7 @@ function cleanup(g) {
   });
 }
 
-},{"./lodash":40,"./util":59}],42:[function(require,module,exports){
+},{"./lodash":41,"./util":60}],43:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -14891,7 +15239,7 @@ function undo(g) {
   });
 }
 
-},{"./lodash":40,"./util":59}],43:[function(require,module,exports){
+},{"./lodash":41,"./util":60}],44:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = addSubgraphConstraints;
@@ -14946,7 +15294,7 @@ function addSubgraphConstraints(g, cg, vs) {
   */
 }
 
-},{"../lodash":40}],44:[function(require,module,exports){
+},{"../lodash":41}],45:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = barycenter;
@@ -14976,7 +15324,7 @@ function barycenter(g, movable) {
 }
 
 
-},{"../lodash":40}],45:[function(require,module,exports){
+},{"../lodash":41}],46:[function(require,module,exports){
 var _ = require("../lodash"),
     Graph = require("../graphlib").Graph;
 
@@ -15051,7 +15399,7 @@ function createRootNode(g) {
   return v;
 }
 
-},{"../graphlib":37,"../lodash":40}],46:[function(require,module,exports){
+},{"../graphlib":38,"../lodash":41}],47:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -15123,7 +15471,7 @@ function twoLayerCrossCount(g, northLayer, southLayer) {
   return cc;
 }
 
-},{"../lodash":40}],47:[function(require,module,exports){
+},{"../lodash":41}],48:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -15204,7 +15552,7 @@ function assignOrder(g, layering) {
   });
 }
 
-},{"../graphlib":37,"../lodash":40,"../util":59,"./add-subgraph-constraints":43,"./build-layer-graph":45,"./cross-count":46,"./init-order":48,"./sort-subgraph":50}],48:[function(require,module,exports){
+},{"../graphlib":38,"../lodash":41,"../util":60,"./add-subgraph-constraints":44,"./build-layer-graph":46,"./cross-count":47,"./init-order":49,"./sort-subgraph":51}],49:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -15244,7 +15592,7 @@ function initOrder(g) {
   return layers;
 }
 
-},{"../lodash":40}],49:[function(require,module,exports){
+},{"../lodash":41}],50:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -15369,7 +15717,7 @@ function mergeEntries(target, source) {
   source.merged = true;
 }
 
-},{"../lodash":40}],50:[function(require,module,exports){
+},{"../lodash":41}],51:[function(require,module,exports){
 var _ = require("../lodash"),
     barycenter = require("./barycenter"),
     resolveConflicts = require("./resolve-conflicts"),
@@ -15447,7 +15795,7 @@ function mergeBarycenters(target, other) {
   }
 }
 
-},{"../lodash":40,"./barycenter":44,"./resolve-conflicts":49,"./sort":51}],51:[function(require,module,exports){
+},{"../lodash":41,"./barycenter":45,"./resolve-conflicts":50,"./sort":52}],52:[function(require,module,exports){
 var _ = require("../lodash"),
     util = require("../util");
 
@@ -15506,7 +15854,7 @@ function compareWithBias(bias) {
   };
 }
 
-},{"../lodash":40,"../util":59}],52:[function(require,module,exports){
+},{"../lodash":41,"../util":60}],53:[function(require,module,exports){
 var _ = require("./lodash");
 
 module.exports = parentDummyChains;
@@ -15594,7 +15942,7 @@ function postorder(g) {
   return result;
 }
 
-},{"./lodash":40}],53:[function(require,module,exports){
+},{"./lodash":41}],54:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -15994,7 +16342,7 @@ function width(g, v) {
   return g.node(v).width;
 }
 
-},{"../graphlib":37,"../lodash":40,"../util":59}],54:[function(require,module,exports){
+},{"../graphlib":38,"../lodash":41,"../util":60}],55:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -16026,7 +16374,7 @@ function positionY(g) {
 }
 
 
-},{"../lodash":40,"../util":59,"./bk":53}],55:[function(require,module,exports){
+},{"../lodash":41,"../util":60,"./bk":54}],56:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -16117,7 +16465,7 @@ function shiftRanks(t, g, delta) {
   });
 }
 
-},{"../graphlib":37,"../lodash":40,"./util":58}],56:[function(require,module,exports){
+},{"../graphlib":38,"../lodash":41,"./util":59}],57:[function(require,module,exports){
 "use strict";
 
 var rankUtil = require("./util"),
@@ -16167,7 +16515,7 @@ function networkSimplexRanker(g) {
   networkSimplex(g);
 }
 
-},{"./feasible-tree":55,"./network-simplex":57,"./util":58}],57:[function(require,module,exports){
+},{"./feasible-tree":56,"./network-simplex":58,"./util":59}],58:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash"),
@@ -16403,7 +16751,7 @@ function isDescendant(tree, vLabel, rootLabel) {
   return rootLabel.low <= vLabel.lim && vLabel.lim <= rootLabel.lim;
 }
 
-},{"../graphlib":37,"../lodash":40,"../util":59,"./feasible-tree":55,"./util":58}],58:[function(require,module,exports){
+},{"../graphlib":38,"../lodash":41,"../util":60,"./feasible-tree":56,"./util":59}],59:[function(require,module,exports){
 "use strict";
 
 var _ = require("../lodash");
@@ -16466,7 +16814,7 @@ function slack(g, e) {
   return g.node(e.w).rank - g.node(e.v).rank - g.edge(e).minlen;
 }
 
-},{"../lodash":40}],59:[function(require,module,exports){
+},{"../lodash":41}],60:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -16704,10 +17052,10 @@ function notime(name, fn) {
   return fn();
 }
 
-},{"./graphlib":37,"./lodash":40}],60:[function(require,module,exports){
+},{"./graphlib":38,"./lodash":41}],61:[function(require,module,exports){
 module.exports = "0.7.4";
 
-},{}],61:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -29063,10 +29411,10 @@ module.exports = "0.7.4";
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],62:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 module.exports = require('./lib/fuzzyset.js');
 
-},{"./lib/fuzzyset.js":63}],63:[function(require,module,exports){
+},{"./lib/fuzzyset.js":64}],64:[function(require,module,exports){
 (function() {
 
 var FuzzySet = function(arr, useLevenshtein, gramSizeLower, gramSizeUpper) {
@@ -29363,7 +29711,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
 })();
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 var read = require("./lib/read-one"),
     readMany = require("./lib/read-many"),
     write = require("./lib/write-one"),
@@ -29387,7 +29735,7 @@ module.exports = {
   buffer: false
 };
 
-},{"./lib/graphlib":67,"./lib/read-many":69,"./lib/read-one":70,"./lib/version":71,"./lib/write-one":72}],65:[function(require,module,exports){
+},{"./lib/graphlib":68,"./lib/read-many":70,"./lib/read-one":71,"./lib/version":72,"./lib/write-one":73}],66:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash"),
@@ -29518,7 +29866,7 @@ function collectNodeIds(stmt) {
 }
 
 
-},{"./graphlib":67,"./lodash":68}],66:[function(require,module,exports){
+},{"./graphlib":68,"./lodash":69}],67:[function(require,module,exports){
 module.exports = (function() {
   /*
    * Generated by PEG.js 0.8.0.
@@ -31909,11 +32257,11 @@ module.exports = (function() {
   };
 })();
 
-},{"./lodash":68}],67:[function(require,module,exports){
-arguments[4][10][0].apply(exports,arguments)
-},{"dup":10,"graphlib":74}],68:[function(require,module,exports){
-arguments[4][22][0].apply(exports,arguments)
-},{"dup":22,"lodash":73}],69:[function(require,module,exports){
+},{"./lodash":69}],68:[function(require,module,exports){
+arguments[4][11][0].apply(exports,arguments)
+},{"dup":11,"graphlib":75}],69:[function(require,module,exports){
+arguments[4][23][0].apply(exports,arguments)
+},{"dup":23,"lodash":74}],70:[function(require,module,exports){
 var _ = require("./lodash"),
     grammar = require("./dot-grammar"),
     buildGraph = require("./build-graph");
@@ -31923,7 +32271,7 @@ module.exports = function readMany(str) {
   return _.map(parseTree, buildGraph);
 };
 
-},{"./build-graph":65,"./dot-grammar":66,"./lodash":68}],70:[function(require,module,exports){
+},{"./build-graph":66,"./dot-grammar":67,"./lodash":69}],71:[function(require,module,exports){
 var grammar = require("./dot-grammar"),
     buildGraph = require("./build-graph");
 
@@ -31933,10 +32281,10 @@ module.exports = function readOne(str) {
 };
 
 
-},{"./build-graph":65,"./dot-grammar":66}],71:[function(require,module,exports){
+},{"./build-graph":66,"./dot-grammar":67}],72:[function(require,module,exports){
 module.exports = '0.6.2';
 
-},{}],72:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 var _ = require("./lodash");
 
 module.exports = writeOne;
@@ -32065,7 +32413,7 @@ Writer.prototype.toString = function() {
 };
 
 
-},{"./lodash":68}],73:[function(require,module,exports){
+},{"./lodash":69}],74:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -38856,7 +39204,7 @@ Writer.prototype.toString = function() {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],74:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /**
  * Copyright (c) 2014, Chris Pettitt
  * All rights reserved.
@@ -38896,7 +39244,7 @@ module.exports = {
   version: lib.version
 };
 
-},{"./lib":90,"./lib/alg":81,"./lib/json":91}],75:[function(require,module,exports){
+},{"./lib":91,"./lib/alg":82,"./lib/json":92}],76:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = components;
@@ -38925,7 +39273,7 @@ function components(g) {
   return cmpts;
 }
 
-},{"../lodash":92}],76:[function(require,module,exports){
+},{"../lodash":93}],77:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = dfs;
@@ -38966,7 +39314,7 @@ function doDfs(g, v, postorder, visited, acc) {
   }
 }
 
-},{"../lodash":92}],77:[function(require,module,exports){
+},{"../lodash":93}],78:[function(require,module,exports){
 var dijkstra = require("./dijkstra"),
     _ = require("../lodash");
 
@@ -38978,7 +39326,7 @@ function dijkstraAll(g, weightFunc, edgeFunc) {
   }, {});
 }
 
-},{"../lodash":92,"./dijkstra":78}],78:[function(require,module,exports){
+},{"../lodash":93,"./dijkstra":79}],79:[function(require,module,exports){
 var _ = require("../lodash"),
     PriorityQueue = require("../data/priority-queue");
 
@@ -39034,7 +39382,7 @@ function runDijkstra(g, source, weightFn, edgeFn) {
   return results;
 }
 
-},{"../data/priority-queue":88,"../lodash":92}],79:[function(require,module,exports){
+},{"../data/priority-queue":89,"../lodash":93}],80:[function(require,module,exports){
 var _ = require("../lodash"),
     tarjan = require("./tarjan");
 
@@ -39046,7 +39394,7 @@ function findCycles(g) {
   });
 }
 
-},{"../lodash":92,"./tarjan":86}],80:[function(require,module,exports){
+},{"../lodash":93,"./tarjan":87}],81:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = floydWarshall;
@@ -39098,7 +39446,7 @@ function runFloydWarshall(g, weightFn, edgeFn) {
   return results;
 }
 
-},{"../lodash":92}],81:[function(require,module,exports){
+},{"../lodash":93}],82:[function(require,module,exports){
 module.exports = {
   components: require("./components"),
   dijkstra: require("./dijkstra"),
@@ -39113,7 +39461,7 @@ module.exports = {
   topsort: require("./topsort")
 };
 
-},{"./components":75,"./dijkstra":78,"./dijkstra-all":77,"./find-cycles":79,"./floyd-warshall":80,"./is-acyclic":82,"./postorder":83,"./preorder":84,"./prim":85,"./tarjan":86,"./topsort":87}],82:[function(require,module,exports){
+},{"./components":76,"./dijkstra":79,"./dijkstra-all":78,"./find-cycles":80,"./floyd-warshall":81,"./is-acyclic":83,"./postorder":84,"./preorder":85,"./prim":86,"./tarjan":87,"./topsort":88}],83:[function(require,module,exports){
 var topsort = require("./topsort");
 
 module.exports = isAcyclic;
@@ -39130,7 +39478,7 @@ function isAcyclic(g) {
   return true;
 }
 
-},{"./topsort":87}],83:[function(require,module,exports){
+},{"./topsort":88}],84:[function(require,module,exports){
 var dfs = require("./dfs");
 
 module.exports = postorder;
@@ -39139,7 +39487,7 @@ function postorder(g, vs) {
   return dfs(g, vs, "post");
 }
 
-},{"./dfs":76}],84:[function(require,module,exports){
+},{"./dfs":77}],85:[function(require,module,exports){
 var dfs = require("./dfs");
 
 module.exports = preorder;
@@ -39148,7 +39496,7 @@ function preorder(g, vs) {
   return dfs(g, vs, "pre");
 }
 
-},{"./dfs":76}],85:[function(require,module,exports){
+},{"./dfs":77}],86:[function(require,module,exports){
 var _ = require("../lodash"),
     Graph = require("../graph"),
     PriorityQueue = require("../data/priority-queue");
@@ -39202,7 +39550,7 @@ function prim(g, weightFunc) {
   return result;
 }
 
-},{"../data/priority-queue":88,"../graph":89,"../lodash":92}],86:[function(require,module,exports){
+},{"../data/priority-queue":89,"../graph":90,"../lodash":93}],87:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = tarjan;
@@ -39251,7 +39599,7 @@ function tarjan(g) {
   return results;
 }
 
-},{"../lodash":92}],87:[function(require,module,exports){
+},{"../lodash":93}],88:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = topsort;
@@ -39287,7 +39635,7 @@ function topsort(g) {
 
 function CycleException() {}
 
-},{"../lodash":92}],88:[function(require,module,exports){
+},{"../lodash":93}],89:[function(require,module,exports){
 var _ = require("../lodash");
 
 module.exports = PriorityQueue;
@@ -39441,7 +39789,7 @@ PriorityQueue.prototype._swap = function(i, j) {
   keyIndices[origArrI.key] = j;
 };
 
-},{"../lodash":92}],89:[function(require,module,exports){
+},{"../lodash":93}],90:[function(require,module,exports){
 "use strict";
 
 var _ = require("./lodash");
@@ -39962,14 +40310,14 @@ function edgeObjToId(isDirected, edgeObj) {
   return edgeArgsToId(isDirected, edgeObj.v, edgeObj.w, edgeObj.name);
 }
 
-},{"./lodash":92}],90:[function(require,module,exports){
+},{"./lodash":93}],91:[function(require,module,exports){
 // Includes only the "core" of graphlib
 module.exports = {
   Graph: require("./graph"),
   version: require("./version")
 };
 
-},{"./graph":89,"./version":93}],91:[function(require,module,exports){
+},{"./graph":90,"./version":94}],92:[function(require,module,exports){
 var _ = require("./lodash"),
     Graph = require("./graph");
 
@@ -40037,12 +40385,12 @@ function read(json) {
   return g;
 }
 
-},{"./graph":89,"./lodash":92}],92:[function(require,module,exports){
-arguments[4][40][0].apply(exports,arguments)
-},{"dup":40,"lodash":94}],93:[function(require,module,exports){
+},{"./graph":90,"./lodash":93}],93:[function(require,module,exports){
+arguments[4][41][0].apply(exports,arguments)
+},{"dup":41,"lodash":95}],94:[function(require,module,exports){
 module.exports = '1.0.7';
 
-},{}],94:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -52398,6 +52746,6 @@ module.exports = '1.0.7';
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}]},{},[1])
+},{}]},{},[2])
 
 //# sourceMappingURL=main.bundle.js.map
