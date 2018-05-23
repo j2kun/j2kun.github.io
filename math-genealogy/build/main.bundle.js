@@ -482,7 +482,7 @@ function renderGraph(graphString) {
   return graph;
 }
 
-function createAncestryGraphFor(id) {
+function createAncestryGraphStringFor(id) {
   var parentsOnly = false;
   if ((0, _graph_search.descendantsCountExceeds)(data, id, 1000)) {
     console.log("the graph is too big!");
@@ -492,7 +492,7 @@ function createAncestryGraphFor(id) {
   var edgeStrings = edgeListToStrings((0, _graph_search.ancestryGraph)(data, id, parentsOnly));
   var graphString = "digraph { ";
 
-  graphString = graphString + " \"" + data[id].name + "\" [style=\"fill: #66ff66; font-weight: bold\"];";
+  graphString = graphString + "\n \"" + data[id].name + "\" [style=\"fill: #66ff66; font-weight: bold\"];";
 
   var _iteratorNormalCompletion = true;
   var _didIteratorError = false;
@@ -502,7 +502,7 @@ function createAncestryGraphFor(id) {
     for (var _iterator = edgeStrings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var edge = _step.value;
 
-      graphString = graphString + " " + edge + " ";
+      graphString = graphString + "\n " + edge + "\n";
     }
   } catch (err) {
     _didIteratorError = true;
@@ -521,7 +521,11 @@ function createAncestryGraphFor(id) {
 
   graphString = graphString + "}";
 
-  return renderGraph(graphString);
+  return graphString;
+}
+
+function createAncestryGraphFor(id) {
+  return renderGraph(createAncestryGraphStringFor(id));
 }
 
 function createCommonAncestryGraphFor(id1, id2) {
@@ -598,6 +602,27 @@ function renderCommonAncestryGraphFromSearch() {
   }
 }
 
+function download(filename, text) {
+  var pom = document.createElement('a');
+  pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  pom.setAttribute('download', filename);
+
+  if (document.createEvent) {
+    var event = document.createEvent('MouseEvents');
+    event.initEvent('click', true, true);
+    pom.dispatchEvent(event);
+  } else {
+    pom.click();
+  }
+}
+
+function downloadDotFile() {
+  var id = getIdFromSearch('#single_name_input');
+  if (id) {
+    download('ancestry_graph.dot', createAncestryGraphStringFor(id));
+  }
+}
+
 d3.select("#single_name_input").on("keyup", function () {
   return suggest("#single_name_input", "#single_name_autocomplete_results");
 });
@@ -614,6 +639,8 @@ d3.select('#common_ancestry_button').on('click', renderCommonAncestryGraphFromSe
 d3.select('#autocomplete_results').style('display', 'none');
 d3.select('#loading').style('display', 'block');
 d3.select('#hide_while_loading').style('display', 'none');
+
+d3.select('#download').on('click', downloadDotFile);
 
 },{"./graph_search":1,"dagre-d3":3,"fuzzyset.js":63,"graphlib-dot":65}],3:[function(require,module,exports){
 /**
