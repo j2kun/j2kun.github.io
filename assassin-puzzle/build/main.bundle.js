@@ -7,10 +7,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function midpoint(a, b) {
-  return new Vector((a.x + b.x) / 2, (a.y + b.y) / 2);
-}
-
 function innerProduct(a, b) {
   return a.x * b.x + a.y * b.y;
 }
@@ -19,24 +15,30 @@ var epsilon = 0.0001;
 var intersectionRadius = 3; // radius around each blocking point
 
 var Vector = function () {
-  function Vector(x, y, label) {
+  function Vector(x, y, label, guardLabel) {
     _classCallCheck(this, Vector);
 
     this.x = x;
     this.y = y;
     this.label = label;
+    this.guardLabel = guardLabel;
   }
 
   _createClass(Vector, [{
     key: "copy",
     value: function copy() {
-      return new Vector(this.x, this.y);
+      return this.preservingAttrs(this.x, this.y);
+    }
+  }, {
+    key: "preservingAttrs",
+    value: function preservingAttrs(x, y) {
+      return new Vector(x, y, this.label, this.guardLabel);
     }
   }, {
     key: "normalized",
     value: function normalized() {
       var norm = 1.0 * this.norm();
-      return new Vector(this.x / norm, this.y / norm);
+      return this.preservingAttrs(this.x / norm, this.y / norm);
     }
   }, {
     key: "norm",
@@ -46,22 +48,27 @@ var Vector = function () {
   }, {
     key: "add",
     value: function add(vector) {
-      return new Vector(this.x + vector.x, this.y + vector.y);
+      return this.preservingAttrs(this.x + vector.x, this.y + vector.y);
     }
   }, {
     key: "subtract",
     value: function subtract(vector) {
-      return new Vector(this.x - vector.x, this.y - vector.y);
+      return this.preservingAttrs(this.x - vector.x, this.y - vector.y);
     }
   }, {
     key: "scale",
     value: function scale(length) {
-      return new Vector(this.x * length, this.y * length);
+      return this.preservingAttrs(this.x * length, this.y * length);
     }
   }, {
     key: "distance",
     value: function distance(vector) {
       return this.subtract(vector).norm();
+    }
+  }, {
+    key: "midpoint",
+    value: function midpoint(b) {
+      return this.preservingAttrs((this.x + b.x) / 2, (this.y + b.y) / 2);
     }
   }, {
     key: "toString",
@@ -165,7 +172,7 @@ var Rectangle = function () {
   }, {
     key: "center",
     value: function center() {
-      return midpoint(this.bottomLeft, this.topRight);
+      return this.bottomLeft.midpoint(this.topRight);
     }
   }, {
     key: "width",
@@ -332,7 +339,7 @@ var Rectangle = function () {
     key: "mirrorTop",
     value: function mirrorTop(vector) {
       var dyToTop = this.topRight.y - vector.y;
-      return new Vector(vector.x, this.topRight.y + dyToTop);
+      return vector.preservingAttrs(vector.x, this.topRight.y + dyToTop);
     }
 
     // Mirror a point across the left side of the rectangle
@@ -341,7 +348,7 @@ var Rectangle = function () {
     key: "mirrorLeft",
     value: function mirrorLeft(vector) {
       var dxToLeft = this.bottomLeft.x - vector.x;
-      return new Vector(this.bottomLeft.x + dxToLeft, vector.y);
+      return vector.preservingAttrs(this.bottomLeft.x + dxToLeft, vector.y);
     }
 
     // Mirror a point across the bottom side of the rectangle
@@ -350,7 +357,7 @@ var Rectangle = function () {
     key: "mirrorBottom",
     value: function mirrorBottom(vector) {
       var dyToBottom = this.bottomLeft.y - vector.y;
-      return new Vector(vector.x, this.bottomLeft.y + dyToBottom);
+      return vector.preservingAttrs(vector.x, this.bottomLeft.y + dyToBottom);
     }
 
     // Mirror a point across the right side of the rectangle
@@ -359,7 +366,7 @@ var Rectangle = function () {
     key: "mirrorRight",
     value: function mirrorRight(vector) {
       var dxToRight = this.topRight.x - vector.x;
-      return new Vector(this.topRight.x + dxToRight, vector.y);
+      return vector.preservingAttrs(this.topRight.x + dxToRight, vector.y);
     }
   }]);
 
@@ -378,6 +385,10 @@ function computeOptimalGuards(square, assassin, target) {
   var target2 = square.mirrorTop(target);
   var target3 = square.mirrorRight(target);
   var target4 = square.mirrorTop(square.mirrorRight(target));
+  target1.guardLabel = 1;
+  target2.guardLabel = 2;
+  target3.guardLabel = 3;
+  target4.guardLabel = 4;
 
   // for each mirrored target, compute the four two-square-length translates
   var mirroredTargets = [target1, target2, target3, target4];
@@ -399,7 +410,7 @@ function computeOptimalGuards(square, assassin, target) {
   for (var _i = 0; _i < translatedTargets.length; _i++) {
     var targetList = translatedTargets[_i];
     translatedMidpoints.push(targetList.map(function (t) {
-      return midpoint(assassin, t);
+      return t.midpoint(assassin);
     }));
   }
 
@@ -449,7 +460,6 @@ module.exports = {
   Vector: Vector,
   Ray: Ray,
   Rectangle: Rectangle,
-  midpoint: midpoint,
   computeOptimalGuards: computeOptimalGuards
 };
 
@@ -466,7 +476,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var width = 800;
 var height = 600;
-var svg = d3.select("body").insert("svg", ":first-child").attr("width", width).attr("height", height);
+var svg = d3.select("#puzzle_demo").insert("svg", ":first-child").attr("width", width).attr("height", height);
 
 var unit = 60;
 var numPoints = 40;
