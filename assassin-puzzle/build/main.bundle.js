@@ -534,8 +534,8 @@ function createPolylineSVG(points) {
 }
 
 function createAssassinSVG(point, square, ray, stoppingPoints) {
-  var assassinSVG = createCircleSVG(point);
   var rayLinesSVG = createPolylineSVG(square.rayToPoints(ray, stoppingPoints));
+  var assassinSVG = createCircleSVG(point);
 
   return {
     assassinSVG: assassinSVG,
@@ -591,7 +591,7 @@ function setupBehavior(baseObjects, assassinSVGs, guardsSVGs, targetSVG) {
   }
 
   // Set up new guards after target drag
-  function setup_new_guards() {
+  function reset_guards() {
     var newGuards = (0, _geometry.computeOptimalGuards)(square, assassinSVG.datum(), targetSVG.datum());
     var newGuardCount = 0;
     newGuards.forEach(function (guard) {
@@ -620,12 +620,13 @@ function setupBehavior(baseObjects, assassinSVGs, guardsSVGs, targetSVG) {
     d.y -= d3.event.dy;
     point.attr("cx", fromCartesianX(d.x)).attr("cy", fromCartesianY(d.y));
 
-    setup_new_guards();
+    reset_guards();
   }
 
   targetSVG.call(d3.drag().on("drag", function (d) {
     drag_target(d, targetSVG);
   }));
+  reset_guards();
 }
 
 function randomInt(min, max) {
@@ -668,9 +669,9 @@ guards.forEach(function (guard) {
 });
 
 var squareSVG = createRectangleSVG(square);
+var assassinSVG = createAssassinSVG(assassin, square, ray, guards.concat([target]));
 var targetSVG = createCircleSVG(target).style("cursor", "pointer");
 var guardsSVGs = updateGuardsSVG(guards);
-var assassinSVG = createAssassinSVG(assassin, square, ray, guards.concat([target]));
 
 var baseObjects = {
   assassin: assassin,
