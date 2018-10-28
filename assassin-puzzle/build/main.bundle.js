@@ -476,7 +476,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var width = 800;
 var height = 600;
-var svg = d3.select("#puzzle_demo").insert("svg", ":first-child").attr("width", width).attr("height", height);
+var svg = d3.select(".puzzle_demo").insert("svg", ":first-child").attr("width", width).attr("height", height);
 
 var unit = 60;
 var numPoints = 40;
@@ -560,7 +560,7 @@ function updateGuardsSVG(guards) {
   return circleContainers;
 }
 
-function setupBehavior(baseObjects, assassinSVGs, guardsSVG, targetSVG) {
+function setupBehavior(baseObjects, assassinSVGs, guardsSVGs, targetSVG) {
   var assassin = baseObjects.assassin,
       square = baseObjects.square,
       target = baseObjects.target,
@@ -583,21 +583,48 @@ function setupBehavior(baseObjects, assassinSVGs, guardsSVG, targetSVG) {
     }
   });
 
-  // Set up drag handlers
-  function dragged(d, point) {
+  // Set up drag handler for guard
+  function drag_guard(d, point) {
+    d.x += d3.event.dx;
+    d.y -= d3.event.dy;
+    point.attr("cx", fromCartesianX(d.x)).attr("cy", fromCartesianY(d.y));
+  }
+
+  // Set up new guards after target drag
+  function setup_new_guards() {
+    var newGuards = (0, _geometry.computeOptimalGuards)(square, assassinSVG.datum(), targetSVG.datum());
+    var newGuardCount = 0;
+    newGuards.forEach(function (guard) {
+      guard.label = "guard";guard.name = ++newGuardCount;
+    });
+    guardsSVGs = updateGuardsSVG(newGuards);
+
+    var _loop = function _loop(i) {
+      var guardsSVG = guardsSVGs.filter(function (d) {
+        return d.name == i;
+      });
+      guardsSVG.style("cursor", "pointer");
+      guardsSVG.call(d3.drag().on("drag", function (d) {
+        drag_guard(d, guardsSVG);
+      }));
+    };
+
+    for (var i = 1; i <= newGuardCount; i++) {
+      _loop(i);
+    }
+  }
+
+  // Set up drag handlers for target
+  function drag_target(d, point) {
     d.x += d3.event.dx;
     d.y -= d3.event.dy;
     point.attr("cx", fromCartesianX(d.x)).attr("cy", fromCartesianY(d.y));
 
-    var newGuards = (0, _geometry.computeOptimalGuards)(square, assassinSVG.datum(), targetSVG.datum());
-    newGuards.forEach(function (guard) {
-      guard.label = "guard";
-    });
-    updateGuardsSVG(newGuards);
+    setup_new_guards();
   }
 
   targetSVG.call(d3.drag().on("drag", function (d) {
-    dragged(d, targetSVG);
+    drag_target(d, targetSVG);
   }));
 }
 
@@ -631,17 +658,18 @@ while (target.distance(assassin) < assassinToTargetMargin) {
 }
 
 // Now set up guards
+var guardCount = 0;
 var guards = (0, _geometry.computeOptimalGuards)(square, assassin, target);
 
 assassin.label = "assassin";
 target.label = "target";
 guards.forEach(function (guard) {
-  guard.label = "guard";
+  guard.label = "guard";guard.name = ++guardCount;
 });
 
 var squareSVG = createRectangleSVG(square);
 var targetSVG = createCircleSVG(target).style("cursor", "pointer");
-var guardsSVG = updateGuardsSVG(guards);
+var guardsSVGs = updateGuardsSVG(guards);
 var assassinSVG = createAssassinSVG(assassin, square, ray, guards.concat([target]));
 
 var baseObjects = {
@@ -653,7 +681,7 @@ var baseObjects = {
 };
 
 // Set up interactivity
-setupBehavior(baseObjects, assassinSVG, guardsSVG, targetSVG);
+setupBehavior(baseObjects, assassinSVG, guardsSVGs, targetSVG);
 
 },{"./geometry":1,"d3":3}],3:[function(require,module,exports){
 // https://d3js.org Version 4.7.4. Copyright 2017 Mike Bostock.
