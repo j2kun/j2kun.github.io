@@ -97,6 +97,8 @@ function distanceBetweenBlocks(b1, b2) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+// A sort key for a cluster, arranging the widest
+// blocks to show up at the top of the column
 function blockSizeLargestToSmallest(b1, b2) {
   // return b1.width - b2.width;
   if (b1.width > b2.width) {
@@ -107,6 +109,28 @@ function blockSizeLargestToSmallest(b1, b2) {
     if (b1.height > b2.height) {
       return -1;
     } else if (b1.height < b2.height) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+}
+
+// A sort key to arrange blocks in a column
+// such that blocks with more vertical y positions
+// show up at the top of the list (maintaining the
+// ordering from the uncleaned workspace).
+function higherBlocksFirst(b1, b2) {
+  var b1Center = b1.center();
+  var b2Center = b2.center();
+  if (b1Center.y > b2Center.y) {
+    return -1;
+  } else if (b1Center.y < b2Center.y) {
+    return 1;
+  } else {
+    if (b1Center.x > b2Center.x) {
+      return -1;
+    } else if (b1Center.x < b2Center.x) {
       return 1;
     } else {
       return 0;
@@ -159,7 +183,7 @@ function cleanup(blocks, canvasTopLeft, rowSpacing, columnSpacing) {
     for (var _iterator = sortedClustering[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
       var cluster = _step.value;
 
-      cluster.sort(blockSizeLargestToSmallest);
+      cluster.sort(higherBlocksFirst);
       var x = columnTopLeft.x;
       var y = columnTopLeft.y;
 
@@ -189,7 +213,10 @@ function cleanup(blocks, canvasTopLeft, rowSpacing, columnSpacing) {
         }
       }
 
-      var offsetToNextColumn = new Vector(cluster[0].width + columnSpacing, 0);
+      var maxBlockWidth = Math.max.apply(Math, (0, _toConsumableArray3.default)(cluster.map(function (b) {
+        return b.width;
+      })));
+      var offsetToNextColumn = new Vector(maxBlockWidth + columnSpacing, 0);
       columnTopLeft = columnTopLeft.add(offsetToNextColumn);
     }
   } catch (err) {
